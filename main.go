@@ -5,14 +5,13 @@ import (
 )
 
 type tokenType unit8
-
 const (
 	group           tokenType = iota
 	bracket         tokenType = iota
 	or              tokenType = iota
 	repeat          tokenType = iota
 	literal         tokenType = iota
-	gruopUncaptured tokenType = iota
+	groupUncaptured tokenType = iota
 )
 
 type token struct {
@@ -25,7 +24,7 @@ type parseContext struct {
 	tokens []token
 }
 
-func parse(regedx string) *parseContext {
+func parse(regex string) *parseContext {
 	ctx := &parseContext{
 		pos:    0,
 		tokens: []token{},
@@ -70,6 +69,46 @@ func process(regex string, ctx *parseContext) {
 	}
 
 }
+
+func parseGroup(regex string, ctx * parseContext) {
+	ctx.pos += 1
+	for regex[ctx.pos] != ')' {
+		process(regex, ctx)
+		ctx.pos += 1
+	}
+}
+
+func parseBracket(regex string, ctx * parseContext ){
+	ctx.pos ++
+	var literals [] string
+	for regex[ctx.pos] != ']' {
+		ch := regex[ctx.pos]
+
+		if ch == '-' {
+			next := regex[ctx.pos + 1]
+			prev := literals[len(literals) - 1][0]
+			literals[len(literals) - 1] = fmt.Sprintf("%c%c", prev, next)
+			ctx.pos++
+		} else {
+			literals = append(literals, fmt.Sprintf("%c",ch))
+		}
+		 ctx.pos++
+	}
+
+	literalsSet := map[uint8]bool {}
+
+
+	for _, l := range literals {
+		for i := l[0]; i <= l[len(l) - 1]; i++ {
+			literalsSet[i] = true
+		}
+	}
+
+	ctx.tokens = append(ctx.tokens, token{
+		tokenType: bracket, 
+		value: literalsSet,
+	})
+}  
 
 func main() {
 	fmt.Println("Go Regex")
