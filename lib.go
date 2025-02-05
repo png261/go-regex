@@ -373,7 +373,7 @@ func getChar(input string, pos int) uint8 {
 		return endOfText
 	}
 
-	if pos <= 0 {
+	if pos < 0 {
 		return startOfText
 	}
 	return input[pos]
@@ -381,11 +381,10 @@ func getChar(input string, pos int) uint8 {
 
 func (s *state) check(input string, pos int) bool {
 	ch := getChar(input, pos)
+
 	if ch == endOfText && s.terminal {
 		return true
 	}
-
-	fmt.Println(input, pos)
 
 	if states := s.transitions[ch]; len(states) > 0 {
 		nextState := states[0]
@@ -411,10 +410,4 @@ type repeatPayload struct {
 	min   int
 	max   int
 	token token
-}
-
-func main() {
-	ctx := parse(`[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z0-9]+.[a-zA-Z]{2,}`)
-	nfa := toNfa(ctx)
-	fmt.Println(nfa.check("support@email.com", -1))
 }
